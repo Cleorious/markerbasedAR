@@ -6,57 +6,30 @@ using Random = UnityEngine.Random;
 
 public class GameplayManager : MonoBehaviour
 {
-    public Enemy enemyPrefab;
-    public Projectile projectilePrefab;
-    public Transform levelContainer;
+    [SerializeField] Enemy enemyPrefab;
+    [SerializeField] Projectile projectilePrefab;
+    [SerializeField] Transform levelContainer;
 
-    [HideInInspector]
-    public GameManager gameManager;
+    GameManager gameManager;
 
-    private List<Enemy> activeEnemies;
+    List<Enemy> activeEnemies;
 
-    private bool gameRunning;
-    private bool isWithinView;
-
-    // public void Start()
-    // {
-    //     activeEnemies = new List<Enemy>();
-    //     
-    //     //instantiate 3 enemies at random locations within square boundary of the marker image
-    //     for (int i = 0; i < Parameter.ENEMY_COUNT; i++)
-    //     {
-    //         Enemy enemy = Instantiate(enemyPrefab, levelContainer);
-    //         Vector3 randomLocalPos = new Vector3(Random.Range(-15f, 15f), Random.Range(-15f, 15f), Random.Range(0f, 5f));
-    //         enemy.Init(this, randomLocalPos);
-    //         activeEnemies.Add(enemy);
-    //     }
-    //
-    //     gameRunning = true;
-    // }
-    //
-    // public void Update()
-    // {
-    //     if (gameRunning)
-    //     {
-    //         if (activeEnemies.Count == 0)
-    //         {
-    //             gameRunning = false;
-    //             //win level
-    //             Debug.Log("win");
-    //         }
-    //
-    //         if (Input.GetKeyUp(KeyCode.Space))
-    //         {
-    //             ShootProjectile();
-    //         }
-    //     }
-    // }
+    bool gameRunning;
+    bool isWithinView;
+    bool gameEnded;
 
     public void Init(GameManager gameManager)
     {
         this.gameManager = gameManager;
+        
+        ResetLevel();
+    }
+
+    public void ResetLevel()
+    {
         isWithinView = false;
         gameRunning = false;
+        gameEnded = false;
         
         if (activeEnemies != null)
         {
@@ -67,7 +40,6 @@ public class GameplayManager : MonoBehaviour
         }
         
         activeEnemies = new List<Enemy>();
-        
     }
 
     public void StartLevel()
@@ -76,11 +48,13 @@ public class GameplayManager : MonoBehaviour
         for (int i = 0; i < Parameter.ENEMY_COUNT; i++)
         {
             Enemy enemy = Instantiate(enemyPrefab, levelContainer);
-            Vector3 randomLocalPos = new Vector3(Random.Range(-15f, 15f), Random.Range(-15f, 15f), Random.Range(0f, 5f));
+            //!TODO: randomize localpos based on boundaries of the scanned image?
+            Vector3 randomLocalPos = new Vector3(Random.Range(-15f, 15f), Random.Range(-15f, 15f), 0f);
             enemy.Init(this, randomLocalPos);
             activeEnemies.Add(enemy);
         }
 
+        gameEnded = false;
         gameRunning = true;
     }
 
@@ -107,11 +81,12 @@ public class GameplayManager : MonoBehaviour
 
     public void DoUpdate(float dt)
     {
-        if (gameRunning && isWithinView)
+        if (gameRunning && isWithinView && !gameEnded)
         {
             if (activeEnemies.Count == 0)
             {
                 //win level
+                gameEnded = true;
                 gameManager.EndGame();
                 Debug.Log("win");
             }

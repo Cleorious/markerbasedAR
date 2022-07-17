@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ScanView : MonoBehaviour
 {
-    private GameManager gameManager;
+    GameManager gameManager;
 
     public void Init(GameManager gameManager)
     {

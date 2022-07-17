@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,9 +19,10 @@ public class GameManager : MonoBehaviour
     public GameplayView gameplayView;
     public WinView WinView;
 
-    private bool initializingAR;
+    bool initializingAR;
 
-    private bool listenersAttached;
+    bool listenersAttached;
+    bool tracked;
     
     // Start is called before the first frame update
     void Start()
@@ -32,6 +34,7 @@ public class GameManager : MonoBehaviour
         gameplayManager = Instantiate(gameplayPrefab);
         gameplayManager.Init(this);
         gameplayManager.Hide();
+        tracked = false;
 
         titlePopup.Show();
     }
@@ -106,6 +109,7 @@ public class GameManager : MonoBehaviour
         {
             if (arTrackedImage.referenceImage.name == "marker")
             {
+                //!TODO: find out why code doesn't seem to reach here
                 gameplayManager.Hide();
                 scanView.Show();
             }
@@ -115,22 +119,38 @@ public class GameManager : MonoBehaviour
 
     void UpdateImage(ARTrackedImage arTrackedImage)
     {
-        if (arTrackedImage.referenceImage.name =="marker")
+        gameplayView.UpdateTrackedText(arTrackedImage.referenceImage.name);
+        if (arTrackedImage.referenceImage.name == "marker")
         {
-            Vector3 arPos = arTrackedImage.transform.position;
-            Quaternion arRot = arTrackedImage.transform.rotation;
-            gameplayManager.transform.position = arPos;
-            gameplayManager.transform.rotation = arRot;
-            gameplayManager.Show();
-            gameplayView.Show();
+            if (arTrackedImage.trackingState != TrackingState.None)
+            {
+                tracked = true;
+            }
+
+            if (tracked)
+            {
+                Vector3 arPos = arTrackedImage.transform.position;
+                gameplayManager.transform.position = arPos;
+                Quaternion arRot = arTrackedImage.transform.rotation;
+                gameplayManager.transform.rotation = arRot;
+                gameplayManager.Show();
+                gameplayView.Show();
         
-            scanView.Hide();
+                scanView.Hide();
+            }
+            else
+            {
+                gameplayManager.Hide();
+            }
+            
+            
         }
     }
 
     public void PrepareScan()
     {
-        WinView.Hide();
+        tracked = false;
+        gameplayManager.ResetLevel();
         scanView.Show();
         AttachListener();
     }
@@ -146,8 +166,6 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //TODO: check if image has been scanned,
-        //once image has been scanned, turn off scanview and change to gameplayview
         gameplayManager.DoUpdate(Time.deltaTime);
         WinView.DoUpdate(Time.deltaTime);
         

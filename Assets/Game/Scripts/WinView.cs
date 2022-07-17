@@ -2,16 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WinView : MonoBehaviour
 {
-    public TextMeshProUGUI countdownText;
+    [SerializeField] TextMeshProUGUI countdownText;
 
-    private GameManager gameManager;
+    GameManager gameManager;
 
-    private bool isCountingDown;
-    private float timer;
-    private int countdown;
+    bool isCountingDown;
+    float timer;
+    int countdown;
 
     public void Init(GameManager gameManager)
     {
@@ -49,6 +50,7 @@ public class WinView : MonoBehaviour
             if (countdown <= 0)
             {
                 gameManager.PrepareScan();
+                Hide();
             }
         }
     }

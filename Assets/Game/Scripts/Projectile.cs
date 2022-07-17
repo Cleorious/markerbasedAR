@@ -5,11 +5,11 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     // Update is called once per frame
-    private float currLifetime;
+    float currLifetime;
 
-    private bool launched;
+    bool launched;
 
-    private Vector3 direction;
+    Vector3 direction;
     
     public void Init(Vector3 direction)
     {

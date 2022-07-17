@@ -10,7 +10,7 @@ public class TitlePopup : MonoBehaviour
     public TextMeshProUGUI descText;
     public Button startButton;
 
-    private GameManager gameManager;
+    GameManager gameManager;
     // Start is called before the first frame update
     public void Init(GameManager gameManager)
     {

@@ -5,13 +5,14 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    
+
+    [SerializeField] Transform healthBar;
+
+    GameplayManager gameplayManager;
+    
     //!runtime data
-    public int currHealth;
-
-    public Transform healthBar;
-
-    [HideInInspector]
-    public GameplayManager gameplayManager;
+    int currHealth;
     
     public void Init(GameplayManager gameplayManager, Vector3 localPos)
     {
@@ -39,12 +40,6 @@ public class Enemy : MonoBehaviour
             Projectile projectile = other.GetComponent<Projectile>();
             projectile.Kill();
         }
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
         
     }
 }
