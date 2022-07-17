@@ -9,4 +9,6 @@ public static class Parameter
     public static int BULLET_DAMAGE = 30;
     public static int BULLET_SPEED = 10;
     public static float BULLET_LIFETIME = 5f;
+
+    public static int WIN_TIMER = 5;
 }

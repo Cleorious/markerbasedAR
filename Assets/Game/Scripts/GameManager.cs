@@ -6,6 +6,7 @@ using UnityEngine.XR.ARFoundation;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] ARSession arSession;
+    [SerializeField] ARTrackedImageManager arTrackedImageManager;
 
     [SerializeField] GameplayManager gameplayPrefab;
 
@@ -15,15 +16,23 @@ public class GameManager : MonoBehaviour
     public TitlePopup titlePopup;
     public ScanView scanView;
     public GameplayView gameplayView;
+    public WinView WinView;
 
     private bool initializingAR;
+
+    private bool listenersAttached;
     
     // Start is called before the first frame update
     void Start()
     {
         titlePopup.Init(this);
         scanView.Init(this);
-        
+        gameplayView.Init(this);
+        WinView.Init(this);
+        gameplayManager = Instantiate(gameplayPrefab);
+        gameplayManager.Init(this);
+        gameplayManager.Hide();
+
         titlePopup.Show();
     }
 
@@ -61,18 +70,77 @@ public class GameManager : MonoBehaviour
             titlePopup.RefreshDescText(ARSessionState.Ready);
             yield return new WaitForSeconds(2f);
             titlePopup.Hide();
-            scanView.Show();
+            PrepareScan();
+        }
+    }
+
+    void AttachListener()
+    {
+        if (!listenersAttached)
+        {
+            listenersAttached = true;
+            arTrackedImageManager.trackedImagesChanged += ImageChanged;
+        }
+    }
+
+    void DetachListener()
+    {
+        if (listenersAttached)
+        {
+            arTrackedImageManager.trackedImagesChanged -= ImageChanged;
+            listenersAttached = false;
+        }
+    }
+
+    void ImageChanged(ARTrackedImagesChangedEventArgs eventArgs)
+    {
+        foreach (ARTrackedImage arTrackedImage in eventArgs.added)
+        {
+            UpdateImage(arTrackedImage);
+        }
+        foreach (ARTrackedImage arTrackedImage in eventArgs.updated)
+        {
+            UpdateImage(arTrackedImage);
+        }
+        foreach (ARTrackedImage arTrackedImage in eventArgs.removed)
+        {
+            if (arTrackedImage.referenceImage.name == "marker")
+            {
+                gameplayManager.Hide();
+                scanView.Show();
+            }
             
         }
     }
 
-    public void StartGame()
+    void UpdateImage(ARTrackedImage arTrackedImage)
     {
-        titlePopup.Hide();
-        scanView.Hide();
-        //TODO: instantiate gameplayprefab/initializegameplayprefab
-        //gameplayManager.Init(this);
-        gameplayView.Show();
+        if (arTrackedImage.referenceImage.name =="marker")
+        {
+            Vector3 arPos = arTrackedImage.transform.position;
+            Quaternion arRot = arTrackedImage.transform.rotation;
+            gameplayManager.transform.position = arPos;
+            gameplayManager.transform.rotation = arRot;
+            gameplayManager.Show();
+            gameplayView.Show();
+        
+            scanView.Hide();
+        }
+    }
+
+    public void PrepareScan()
+    {
+        WinView.Hide();
+        scanView.Show();
+        AttachListener();
+    }
+
+    public void EndGame()
+    {
+        DetachListener();
+        gameplayView.Hide();
+        gameplayManager.Hide();
+        WinView.Show();
     }
 
     // Update is called once per frame
@@ -80,5 +148,8 @@ public class GameManager : MonoBehaviour
     {
         //TODO: check if image has been scanned,
         //once image has been scanned, turn off scanview and change to gameplayview
+        gameplayManager.DoUpdate(Time.deltaTime);
+        WinView.DoUpdate(Time.deltaTime);
+        
     }
 }
